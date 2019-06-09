@@ -1,0 +1,36 @@
+---
+name: KOTH-Signs
+author: Jackthehack21
+version: 0.0.1
+api:
+  - 3.0.0
+main: Jackthehack21\KOTH_Signs\Main
+
+depend: [KOTH]
+extensions: [sqlite3]
+
+commands:
+  koth-signs:
+    description: "KOTH Signs general command"
+    permission: kothsigns.command
+    usage: /koth-signs help
+    permission-message: "[KOTH-Signs] You do not have permission to use this command."
+
+permissions:
+  kothsigns:
+    default: false
+    description: "All permissions for KOTH-Signs extension."
+    children:
+      kothsigns.command:
+        description: "Allows player to use /koth-signs"
+        default: true
+      kothsigns.use:
+        description: "Allows player to interact with the signs."
+        default: true
+      kothsigns.add:
+        description: "Allows player to create a sign."
+        default: op
+      kothsigns.rem:
+        description: "Allows player to remove a sign."
+        default: op
+...
