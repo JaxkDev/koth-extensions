@@ -1,7 +1,7 @@
 ---
 name: KOTH-Signs
 author: Jackthehack21
-version: 0.0.1
+version: 1.0.0-Beta1
 api:
   - 3.0.0
 main: Jackthehack21\KOTH_Signs\Main

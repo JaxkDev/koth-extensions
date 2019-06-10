@@ -27,10 +27,42 @@ namespace Jackthehack21\KOTH_Signs;
 use Jackthehack21\KOTH\Main as KOTH;
 use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 
 class Main extends PluginBase implements Listener{
+
+    /** @var Config */
+    private $configC;
+    private $dataC; //todo remove and change to sqlite3.
+
+    private $config;
+    private $data;
+
+    /** @var KOTH */
+    private $koth;
+
+    /** @var EventHandler */
+    private $EventHandler;
+
     public function onEnable()
     {
-        $this->getLogger()->info("Plugin enabled, more coming soon.");
+        $this->koth = KOTH::getInstance();
+        $this->EventHandler = new EventHandler($this);
+        // VERIFY koth is a specific version so no API conflicts and api errors.
+        if($this->koth->getDescription()->getVersion() !== "1.0.0-Beta3"){
+            $this->getLogger()->error("KoTH v".$this->koth->getDescription()->getVersion()." is not supported, plugin is now disabled.");
+            $this->getServer()->getPluginManager()->disablePlugin($this);
+        }
+        $this->getServer()->getPluginManager()->registerEvents($this->EventHandler, $this);
+        $this->init();
+    }
+
+    private function init(): void{
+        $this->saveResource("config.yml");
+        $this->configC = new Config("config.yml");
+        $this->config = $this->configC->getAll();
+
+        $this->dataC = new Config("data.yml", CONFIG::YAML, ["version"=>0, "signs"=>[]]);
+        $this->data = $this->dataC->getAll();
     }
 }
