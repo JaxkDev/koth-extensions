@@ -4,16 +4,16 @@ version: 0
 update_interval: 2
 
 sign_join_format:
-  - "Arena  : {ARENA}"
+  - "[{ARENA}]"
   - "Players: {PLAYERS}/{PLAYERS_LIMIT}"
   - "Status : {STATUS}"
   - "Tap to join."
-  - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE, it will not effect anything."
+  - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE it will not effect anything."
 
 sign_leave_format:
-  - "Arena  : {ARENA}"
+  - "[{ARENA}]"
   - "Players: {PLAYERS}/{PLAYERS_LIMIT}"
   - "Status : {STATUS}"
   - "Tap to leave."
-  - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE, it will not effect anything."
+  - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE it will not effect anything."
 ...

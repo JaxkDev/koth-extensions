@@ -24,8 +24,10 @@
 declare(strict_types=1);
 namespace Jackthehack21\KOTH_Signs;
 
+use Jackthehack21\KOTH\Arena;
 use Jackthehack21\KOTH\Main as KOTH;
 use pocketmine\event\Listener;
+use pocketmine\math\Vector3;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
@@ -33,6 +35,7 @@ class Main extends PluginBase implements Listener{
 
     /** @var Config */
     private $configC;
+    /** @var Config */
     private $dataC; //todo remove and change to sqlite3.
 
     private $config;
@@ -46,12 +49,13 @@ class Main extends PluginBase implements Listener{
 
     public function onEnable()
     {
-        $this->koth = KOTH::getInstance();
+        $this->koth = $this->getServer()->getPluginManager()->getPlugin("KOTH");
         $this->EventHandler = new EventHandler($this);
         // VERIFY koth is a specific version so no API conflicts and api errors.
         if($this->koth->getDescription()->getVersion() !== "1.0.0-Beta3"){
             $this->getLogger()->error("KoTH v".$this->koth->getDescription()->getVersion()." is not supported, plugin is now disabled.");
             $this->getServer()->getPluginManager()->disablePlugin($this);
+            return;
         }
         $this->getServer()->getPluginManager()->registerEvents($this->EventHandler, $this);
         $this->init();
@@ -65,4 +69,67 @@ class Main extends PluginBase implements Listener{
         $this->dataC = new Config("data.yml", CONFIG::YAML, ["version"=>0, "signs"=>[]]);
         $this->data = $this->dataC->getAll();
     }
+
+    public function save(): void{
+        $this->dataC->setAll($this->data);
+        $this->dataC->save();
+    }
+
+
+    /**
+     * @param string $world
+     * @param int|Vector3 $x
+     * @param int $y
+     * @param int $z
+     *
+     * @return null|object
+     */
+    public function getSign($world, $x, $y = 0, $z = 0){
+        if($x instanceof Vector3){
+            $z = $x->getZ();
+            $y = $x->getY();
+            $x = $x->getX();
+        }
+        $pos = $x.".".$y.".".$z;
+        foreach($this->data["signs"] as $sign){
+            if($sign["world"] === $world && $sign["position"] === $pos){
+                return $sign;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param object $sign
+     *
+     * @return bool
+     */
+    public function remSign($sign): bool{
+        for($i = 0; $i < count($this->data["signs"]); $i++){
+            if($this->data["signs"][$i] === $sign){
+                unset($this->data["signs"][$i]);
+                $this->save();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param object $sign
+     */
+    public function addSign($sign): void{
+        $this->data["signs"][] = $sign;
+        $this->save();
+    }
+
+    /**
+     * @param object $sign
+     *
+     * @return null|Arena
+     */
+    public function getArena($sign){
+        return $this->koth->getArenaByName($sign["arena"]);
+    }
+
 }

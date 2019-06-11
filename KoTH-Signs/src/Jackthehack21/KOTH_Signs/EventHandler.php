@@ -27,6 +27,8 @@ namespace Jackthehack21\KOTH_Signs;
 use pocketmine\event\Listener;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\tile\Sign as SignTile;
+use pocketmine\utils\TextFormat as C;
 
 class EventHandler implements Listener
 {
@@ -40,16 +42,47 @@ class EventHandler implements Listener
     public function onBlockBreak(BlockBreakEvent $event){
         $player = $event->getPlayer();
         $block = $event->getBlock();
-        var_dump($block->getName());
-        var_dump($player->getName());
+        if($block->getName() === "Sign" && $this->plugin->getSign($block->getLevel()->getName(), $block->asVector3()) !== null){
+            $sign = $this->plugin->getSign($block->getLevel()->getName(), $block->asVector3());
+            if($player->hasPermission("kothsigns.rem")){
+                $this->plugin->remSign($sign);
+                $player->sendMessage(C::GREEN."[KoTH-Signs] Sign removed.");
+            } else {
+                $event->setCancelled();
+                $player->sendMessage(C::RED."[KoTH-Signs] You do not have permission to remove this sign.");
+            }
+        }
     }
 
     public function onInteract(PlayerInteractEvent $event){
         if($event->getAction() !== PlayerInteractEvent::RIGHT_CLICK_BLOCK) return;
         $player = $event->getPlayer();
         $block = $event->getBlock();
-        var_dump($block->getName());
-        var_dump($player->getName());
+        if($block->getName() === "Wall Sign" or $block->getName() === "Sign Post"){
+            $sign = $this->plugin->getSign($block->getLevel()->getName(), $block->asVector3());
+            if($sign !== null){
+                if($player->hasPermission("kothsigns.use")){
+                    $arena = $this->plugin->getArena($sign);
+                    if($arena === null){
+                        $this->plugin->remSign($sign);
+                        $player->sendMessage(C::RED."[KoTH-Signs] The arena does not exist, sign removed."); //shouldn't reach here as UpdateTask should auto remove it.
+                        return;
+                    }
+                    $arena->addPlayer($player);
+                }
+            }
+            $tile = $block->getLevel()->getTile($block->asVector3());
+            if($tile instanceof SignTile){
+                $text = $tile->getText();
+                if($text[0] === "[KOTH]" && strlen($text[1]) > 1 && ($text[2] === "join" or $text[2] === "leave")){
+                    //add sign.
+                    if($player->hasPermission("kothsigns.add")){
+                        //validate arena etc.
+                        $player->sendMessage(C::GREEN."Added Sign, (NOT)");
+                    }
+                }
+            }
+        }
     }
 
 }

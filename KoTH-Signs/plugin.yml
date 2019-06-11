@@ -7,23 +7,13 @@ api:
 main: Jackthehack21\KOTH_Signs\Main
 
 depend: [KOTH]
-extensions: [sqlite3]
-
-commands:
-  koth-signs:
-    description: "KOTH Signs general command"
-    permission: kothsigns.command
-    usage: /koth-signs help
-    permission-message: "[KOTH-Signs] You do not have permission to use this command."
+#extensions: [sqlite3]
 
 permissions:
   kothsigns:
     default: false
     description: "All permissions for KOTH-Signs extension."
     children:
-      kothsigns.command:
-        description: "Allows player to use /koth-signs"
-        default: true
       kothsigns.use:
         description: "Allows player to interact with the signs."
         default: true
