@@ -29,9 +29,14 @@ use Jackthehack21\KOTH\Main as KOTH;
 use pocketmine\event\Listener;
 use pocketmine\math\Vector3;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\TaskHandler;
 use pocketmine\utils\Config;
 
 class Main extends PluginBase implements Listener{
+
+    public const SIGN_TYPE_STATS = 0;
+    public const SIGN_TYPE_JOIN = 1;
+    public const SIGN_TYPE_LEAVE = 2;
 
     /** @var Config */
     private $configC;
@@ -42,10 +47,13 @@ class Main extends PluginBase implements Listener{
     private $data;
 
     /** @var KOTH */
-    private $koth;
+    public $koth;
 
     /** @var EventHandler */
     private $EventHandler;
+
+    /** @var TaskHandler */
+    private $updateTask;
 
     public function onEnable()
     {
@@ -61,13 +69,21 @@ class Main extends PluginBase implements Listener{
         $this->init();
     }
 
+    public function onDisable()
+    {
+        $this->save();
+        $this->updateTask->cancel();
+    }
+
     private function init(): void{
         $this->saveResource("config.yml");
-        $this->configC = new Config("config.yml");
+        $this->configC = new Config($this->getDataFolder() . "config.yml");
         $this->config = $this->configC->getAll();
 
-        $this->dataC = new Config("data.yml", CONFIG::YAML, ["version"=>0, "signs"=>[]]);
+        $this->dataC = new Config($this->getDataFolder() . "data.yml", CONFIG::YAML, ["version"=>0, "signs"=>[]]);
         $this->data = $this->dataC->getAll();
+
+        $this->updateTask = $this->getScheduler()->scheduleRepeatingTask(new UpdateTask($this),$this->config["update_interval"]*20);
     }
 
     public function save(): void{
@@ -108,6 +124,7 @@ class Main extends PluginBase implements Listener{
         for($i = 0; $i < count($this->data["signs"]); $i++){
             if($this->data["signs"][$i] === $sign){
                 unset($this->data["signs"][$i]);
+                $this->data["signs"] = array_values($this->data["signs"]); //reset index's
                 $this->save();
                 return true;
             }
@@ -124,6 +141,13 @@ class Main extends PluginBase implements Listener{
     }
 
     /**
+     * @return mixed
+     */
+    public function getSigns(){
+        return $this->data["signs"];
+    }
+
+    /**
      * @param object $sign
      *
      * @return null|Arena
@@ -132,4 +156,35 @@ class Main extends PluginBase implements Listener{
         return $this->koth->getArenaByName($sign["arena"]);
     }
 
+    /**
+     * @param int $type
+     *
+     * @return mixed|null
+     */
+    public function getFormat(int $type){
+        switch ($type) {
+            case $this::SIGN_TYPE_STATS:
+                return $this->config["sign_stats_format"];
+            case $this::SIGN_TYPE_JOIN:
+                return $this->config["sign_join_format"];
+            case $this::SIGN_TYPE_LEAVE:
+                return $this->config["sign_leave_format"];
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * @param string $text
+     * @param Arena $arena
+     *
+     * @return string
+     */
+    public function format(string $text, Arena $arena): string{
+        return $this->koth->utils->colourise(str_replace(
+            ["{ARENA}", "{PLAYERS}", "{PLAYERS_LIMIT}", "{STATUS}", "{WORLD}"],
+            [$arena->getName(), count($arena->getPlayers()), $arena->maxPlayers, $arena->getFriendlyStatus(), $arena->world],
+            $text
+        ));
+    }
 }

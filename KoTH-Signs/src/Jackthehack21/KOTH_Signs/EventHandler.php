@@ -42,7 +42,7 @@ class EventHandler implements Listener
     public function onBlockBreak(BlockBreakEvent $event){
         $player = $event->getPlayer();
         $block = $event->getBlock();
-        if($block->getName() === "Sign" && $this->plugin->getSign($block->getLevel()->getName(), $block->asVector3()) !== null){
+        if($block->getName() === "Wall Sign" or $block->getName() === "Sign Post" && $this->plugin->getSign($block->getLevel()->getName(), $block->asVector3()) !== null){
             $sign = $this->plugin->getSign($block->getLevel()->getName(), $block->asVector3());
             if($player->hasPermission("kothsigns.rem")){
                 $this->plugin->remSign($sign);
@@ -68,17 +68,48 @@ class EventHandler implements Listener
                         $player->sendMessage(C::RED."[KoTH-Signs] The arena does not exist, sign removed."); //shouldn't reach here as UpdateTask should auto remove it.
                         return;
                     }
-                    $arena->addPlayer($player);
+                    if($sign["type"] === $this->plugin::SIGN_TYPE_JOIN){
+                        $arena->addPlayer($player);
+                        return;
+                    }
+                    if($sign["type"] === $this->plugin::SIGN_TYPE_LEAVE){
+                        if($this->plugin->koth->getArenaByPlayer($player->getName()) === null or $this->plugin->koth->getArenaByPlayer($player->getName())->getName() !== $arena->getName()){
+                            return;
+                        }
+                        $arena->removePlayer($player, "Left the game, via KoTH-Signs"); //todo config.
+                        return;
+                    }
+                    //todo form for more info if type is stats.
                 }
             }
             $tile = $block->getLevel()->getTile($block->asVector3());
             if($tile instanceof SignTile){
                 $text = $tile->getText();
-                if($text[0] === "[KOTH]" && strlen($text[1]) > 1 && ($text[2] === "join" or $text[2] === "leave")){
-                    //add sign.
+                if($text[0] === "[KOTH]" && strlen($text[1]) > 1 && ($text[2] === "join" or $text[2] === "leave" or $text[2] === "")){
+                    $sign = [
+                        "world" => $block->getLevel()->getName(),
+                        "position" => $block->getX().".".$block->getY().".".$block->getZ()
+                    ];
+                    switch ($text[2]){
+                        case 'join':
+                            $type = $this->plugin::SIGN_TYPE_JOIN;
+                            break;
+                        case 'leave':
+                            $type = $this->plugin::SIGN_TYPE_LEAVE;
+                            break;
+                        default:
+                            $type = $this->plugin::SIGN_TYPE_STATS;
+                    }
+                    $sign["type"] = $type;
+                    $arena = $this->plugin->koth->getArenaByName($text[1]);
+                    if($arena === null){
+                        $player->sendMessage(C::RED."[KoTH-Signs] The arena '".$text[1]."' does not exist.");
+                        return;
+                    }
+                    $sign["arena"] = $arena->getName();
                     if($player->hasPermission("kothsigns.add")){
-                        //validate arena etc.
-                        $player->sendMessage(C::GREEN."Added Sign, (NOT)");
+                        $this->plugin->addSign($sign);
+                        $player->sendMessage(C::GREEN."[KoTH-Signs] Sign added.");
                     }
                 }
             }

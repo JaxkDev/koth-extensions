@@ -3,17 +3,24 @@ version: 0
 
 update_interval: 2
 
+sign_stats_format:
+  - "[{RED}{ARENA}{RESET}]"
+  - "{AQUA}{STATUS}"
+  - "{RED}Players: {AQUA}{PLAYERS}{RED}/{AQUA}{PLAYERS_LIMIT}"
+  - "{RED}World  : {AQUA}{WORLD}"
+  - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE it will not effect anything."
+
 sign_join_format:
-  - "[{ARENA}]"
-  - "Players: {PLAYERS}/{PLAYERS_LIMIT}"
-  - "Status : {STATUS}"
-  - "Tap to join."
+  - "[{RED}{ARENA}{RESET}]"
+  - "{AQUA}{STATUS}"
+  - "{RED}Players: {AQUA}{PLAYERS}{RED}/{AQUA}{PLAYERS_LIMIT}"
+  - "{GREEN}Tap to join."
   - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE it will not effect anything."
 
 sign_leave_format:
-  - "[{ARENA}]"
-  - "Players: {PLAYERS}/{PLAYERS_LIMIT}"
-  - "Status : {STATUS}"
-  - "Tap to leave."
+  - "[{RED}{ARENA}{RESET}]"
+  - "{AQUA}{STATUS}"
+  - "{RED}Players: {AQUA}{PLAYERS}{RED}/{AQUA}{PLAYERS_LIMIT}"
+  - "{GREEN}Tap to leave."
   - "Each of the above represents a line of text on the sign, <-- DONT CHANGE THIS LINE it will not effect anything."
 ...
